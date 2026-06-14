@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Eluno OMS{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <header>
+        <h1 class="text-2xl font-semibold tracking-tight">Order Management Dashboard</h1>
+        <p class="text-slate-600 mt-1">AI-powered eyewear order lifecycle — intake to delivery.</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-sm text-slate-500">Active orders</p>
+            <p class="text-3xl font-semibold mt-1">—</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-sm text-slate-500">At SLA risk</p>
+            <p class="text-3xl font-semibold mt-1 text-amber-600">—</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-sm text-slate-500">Breached</p>
+            <p class="text-3xl font-semibold mt-1 text-rose-600">—</p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-sm text-slate-500">Delivered today</p>
+            <p class="text-3xl font-semibold mt-1 text-emerald-600">—</p>
+        </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg p-6">
+        <h2 class="text-lg font-semibold mb-2">Scaffolding live</h2>
+        <p class="text-sm text-slate-600">
+            FastAPI + Jinja + HTMX + Tailwind running. Database, AI, and alert modules wire up next.
+        </p>
+        <div class="mt-4 flex gap-2">
+            <a href="/docs" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border border-slate-300 hover:bg-slate-100">API docs</a>
+            <a href="/health" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border border-slate-300 hover:bg-slate-100">Health</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

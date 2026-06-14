@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_number }} | Eluno OMS{% endblock %}
+{% block content %}
+{% set b = sla.bucket %}
+{% set color = 'emerald' if b == 'ok' else ('amber' if b == 'at_risk' else 'rose') %}
+<div class="space-y-6 max-w-5xl">
+    <header class="flex items-end justify-between">
+        <div>
+            <p class="text-xs uppercase tracking-wide text-slate-500">Order</p>
+            <h1 class="text-2xl font-semibold font-mono">{{ order.order_number }}</h1>
+            <p class="text-slate-600 mt-1">{{ order.customer_name }} · {{ order.source }} · {{ order.stores.name if order.stores else "" }}</p>
+        </div>
+        <a href="/orders" class="text-sm text-indigo-600 hover:underline">← All orders</a>
+    </header>
+
+    <div class="grid grid-cols-3 gap-4">
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-xs uppercase text-slate-500 font-medium">Current stage</p>
+            <p class="text-xl font-semibold mt-1">{{ order.status }}</p>
+            <p class="text-xs text-slate-500 mt-1">Started {{ sla.elapsed_hours }} h ago</p>
+        </div>
+        <div class="bg-{{ color }}-50 border border-{{ color }}-300 rounded-lg p-5">
+            <p class="text-xs uppercase text-{{ color }}-700 font-medium">SLA</p>
+            <p class="text-xl font-semibold mt-1 text-{{ color }}-800">{{ sla.pct }}% used</p>
+            <p class="text-xs text-{{ color }}-700 mt-1">
+                {% if sla.remaining_hours > 0 %}
+                    {{ sla.remaining_hours }} h remaining of {{ sla.sla_hours }} h
+                {% else %}
+                    Breached by {{ (sla.remaining_hours * -1) | round(1) }} h
+                {% endif %}
+            </p>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-xs uppercase text-slate-500 font-medium">Inventory at intake</p>
+            <p class="text-xl font-semibold mt-1">{{ order.inventory_status or "—" }}</p>
+            {% if order.reorder_count and order.reorder_count > 0 %}
+            <p class="text-xs text-rose-600 mt-1">Re-orders due to QC fail: {{ order.reorder_count }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
+            <h2 class="text-lg font-semibold">Prescription</h2>
+            <div class="grid grid-cols-5 gap-2 text-sm">
+                <div></div><div class="text-xs font-semibold text-slate-500">SPH</div><div class="text-xs font-semibold text-slate-500">CYL</div><div class="text-xs font-semibold text-slate-500">AXIS</div><div class="text-xs font-semibold text-slate-500">ADD</div>
+                <div class="font-medium">OD</div><div>{{ order.sph_right }}</div><div>{{ order.cyl_right }}</div><div>{{ order.axis_right }}</div><div>{{ order.add_right }}</div>
+                <div class="font-medium">OS</div><div>{{ order.sph_left }}</div><div>{{ order.cyl_left }}</div><div>{{ order.axis_left }}</div><div>{{ order.add_left }}</div>
+            </div>
+            <p class="text-sm text-slate-600">PD: {{ order.pd or "—" }} mm</p>
+            <hr class="border-slate-100">
+            <h2 class="text-lg font-semibold">Lens & frame</h2>
+            <p class="text-sm text-slate-700">{{ order.lens_type }} · Index {{ order.lens_index }} · {{ order.coating or "no coating" }}</p>
+            <p class="text-sm text-slate-700">Frame: {{ order.frame_model or "—" }}</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+            <h2 class="text-lg font-semibold">Update status</h2>
+            {% if next_statuses %}
+            <form id="status-form" class="space-y-3">
+                <label class="block">
+                    <span class="text-sm font-medium text-slate-700">Move to</span>
+                    <select name="new_status" class="mt-1 block w-full rounded border-slate-300 text-sm">
+                        {% for s in next_statuses %}<option>{{ s }}</option>{% endfor %}
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="text-sm font-medium text-slate-700">Reason / note (optional)</span>
+                    <textarea name="reason" rows="2" class="mt-1 block w-full rounded border-slate-300 text-sm" placeholder="e.g. Vendor delay, QC re-cut needed, frame swap..."></textarea>
+                </label>
+                <button type="button" onclick="submitStatus()" class="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    Commit transition
+                </button>
+            </form>
+            {% else %}
+            <p class="text-sm text-slate-600">No further transitions available from <strong>{{ order.status }}</strong>.</p>
+            {% endif %}
+
+            <hr class="border-slate-100" />
+            <h2 class="text-lg font-semibold">Audit trail</h2>
+            <ol class="space-y-2 text-sm">
+                {% for h in history %}
+                <li class="flex gap-2">
+                    <div class="w-1 bg-indigo-200 rounded-full"></div>
+                    <div>
+                        <p>
+                            <span class="text-slate-500">{{ h.from_status or "—" }} → </span>
+                            <strong>{{ h.to_status }}</strong>
+                            <span class="text-xs text-slate-500 ml-2">{{ h.created_at[:16].replace("T", " ") }}</span>
+                        </p>
+                        {% if h.reason %}<p class="text-xs text-slate-600 italic">{{ h.reason }}</p>{% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+async function submitStatus() {
+    const form = document.getElementById('status-form');
+    const fd = new FormData(form);
+    const res = await fetch("/api/orders/{{ order.id }}/status", { method: "POST", body: fd });
+    const j = await res.json();
+    if (j.ok) window.location.href = j.redirect;
+    else alert("Failed: " + (j.detail || JSON.stringify(j)));
+}
+</script>
+{% endblock %}

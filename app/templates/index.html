@@ -2,39 +2,58 @@
 {% block title %}Dashboard | Eluno OMS{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <header>
-        <h1 class="text-2xl font-semibold tracking-tight">Order Management Dashboard</h1>
-        <p class="text-slate-600 mt-1">AI-powered eyewear order lifecycle — intake to delivery.</p>
+    <header class="flex items-end justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight">Order Management Dashboard</h1>
+            <p class="text-slate-600 mt-1">AI-powered eyewear order lifecycle — intake to delivery.</p>
+        </div>
+        <a href="/orders/new" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            + New order
+        </a>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white border border-slate-200 rounded-lg p-5">
+        <a href="/orders" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-indigo-400 transition">
             <p class="text-sm text-slate-500">Active orders</p>
-            <p class="text-3xl font-semibold mt-1">—</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-3xl font-semibold mt-1">{{ kpis.active }}</p>
+        </a>
+        <a href="/orders" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-amber-400 transition">
             <p class="text-sm text-slate-500">At SLA risk</p>
-            <p class="text-3xl font-semibold mt-1 text-amber-600">—</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-3xl font-semibold mt-1 text-amber-600">{{ kpis.at_risk }}</p>
+        </a>
+        <a href="/orders" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-rose-400 transition">
             <p class="text-sm text-slate-500">Breached</p>
-            <p class="text-3xl font-semibold mt-1 text-rose-600">—</p>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-lg p-5">
+            <p class="text-3xl font-semibold mt-1 text-rose-600">{{ kpis.breached }}</p>
+        </a>
+        <a href="/orders" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-emerald-400 transition">
             <p class="text-sm text-slate-500">Delivered today</p>
-            <p class="text-3xl font-semibold mt-1 text-emerald-600">—</p>
-        </div>
+            <p class="text-3xl font-semibold mt-1 text-emerald-600">{{ kpis.delivered_today }}</p>
+        </a>
     </div>
 
-    <div class="bg-white border border-slate-200 rounded-lg p-6">
-        <h2 class="text-lg font-semibold mb-2">Scaffolding live</h2>
-        <p class="text-sm text-slate-600">
-            FastAPI + Jinja + HTMX + Tailwind running. Database, AI, and alert modules wire up next.
-        </p>
-        <div class="mt-4 flex gap-2">
-            <a href="/docs" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border border-slate-300 hover:bg-slate-100">API docs</a>
-            <a href="/health" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border border-slate-300 hover:bg-slate-100">Health</a>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/orders/new" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-indigo-400 transition">
+            <p class="text-xs uppercase tracking-wide text-indigo-600 font-medium">Module 1</p>
+            <p class="text-lg font-semibold mt-1">New order intake</p>
+            <p class="text-sm text-slate-600 mt-1">Rx photo → Gemini Vision → inventory match.</p>
+        </a>
+        <a href="/orders" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-indigo-400 transition">
+            <p class="text-xs uppercase tracking-wide text-indigo-600 font-medium">Module 2</p>
+            <p class="text-lg font-semibold mt-1">Order dashboard</p>
+            <p class="text-sm text-slate-600 mt-1">Status transitions, SLA timers, audit trail.</p>
+        </a>
+        <a href="/tat-scan" class="bg-white border border-slate-200 rounded-lg p-5 hover:border-indigo-400 transition">
+            <p class="text-xs uppercase tracking-wide text-indigo-600 font-medium">Module 3</p>
+            <p class="text-lg font-semibold mt-1">TAT predictor + alerts</p>
+            <p class="text-sm text-slate-600 mt-1">Gemini reasons about breach risk, fires alerts.</p>
+        </a>
     </div>
+
+    {% if kpis.error %}
+    <div class="bg-amber-50 border border-amber-300 rounded-lg p-4 text-sm text-amber-800">
+        <strong>Database not ready yet:</strong> {{ kpis.error }}
+        <p class="mt-1">Paste <code class="bg-amber-100 px-1 rounded">scripts/schema.sql</code> into Supabase, then run <code class="bg-amber-100 px-1 rounded">python scripts/seed.py</code>.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

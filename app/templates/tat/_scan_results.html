@@ -1,0 +1,59 @@
+<div class="space-y-4">
+    <div class="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between">
+        <p class="text-sm">Scanned <strong>{{ results | length }}</strong> active orders.</p>
+        <p class="text-sm">
+            Alerts fired:
+            <span class="font-semibold {{ 'text-rose-600' if alerts_sent else 'text-slate-600' }}">{{ alerts_sent }}</span>
+        </p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-left text-xs font-medium text-slate-500 uppercase">
+                    <th class="px-4 py-3">Order</th>
+                    <th class="px-4 py-3">Stage</th>
+                    <th class="px-4 py-3">SLA used</th>
+                    <th class="px-4 py-3">Risk</th>
+                    <th class="px-4 py-3">AI reasoning</th>
+                    <th class="px-4 py-3">Suggested action</th>
+                    <th class="px-4 py-3">Alert</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for r in results %}
+                {% set risk = r.assessment.breach_risk or 0 %}
+                {% set risk_pct = (risk * 100) | int %}
+                {% set color = 'rose' if risk >= 0.7 else ('amber' if risk >= 0.4 else 'emerald') %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono text-xs">
+                        <a href="/orders/{{ r.order.id }}" class="text-indigo-600 hover:underline">{{ r.order.order_number }}</a>
+                        <p class="text-slate-500 text-xs">{{ r.order.lens_type }}</p>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600">{{ r.order.status }}</td>
+                    <td class="px-4 py-3">{{ r.sla.pct }}%</td>
+                    <td class="px-4 py-3">
+                        <span class="text-xs px-2 py-1 rounded bg-{{ color }}-100 text-{{ color }}-800 font-semibold">
+                            {{ risk_pct }}%
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-700 max-w-md">{{ r.assessment.reason }}</td>
+                    <td class="px-4 py-3 text-xs text-slate-700 max-w-xs">{{ r.assessment.suggested_action }}</td>
+                    <td class="px-4 py-3 text-xs">
+                        {% if r.alert %}
+                            <div>
+                                Email: {{ '✓' if r.alert.email.ok else '✗ ' + (r.alert.email.reason or '') }}
+                            </div>
+                            <div>
+                                WhatsApp: {{ '✓' if r.alert.whatsapp.ok else '✗ ' + (r.alert.whatsapp.reason or '') }}
+                            </div>
+                        {% else %}
+                            <span class="text-slate-400">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

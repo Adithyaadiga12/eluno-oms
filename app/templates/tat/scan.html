@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}TAT scan | Eluno OMS{% endblock %}
+{% block content %}
+<div class="space-y-6 max-w-5xl">
+    <header>
+        <h1 class="text-2xl font-semibold tracking-tight">TAT prediction & breach alerts</h1>
+        <p class="text-slate-600 mt-1">
+            Gemini analyses every active order, scores breach risk, and fires email + WhatsApp alerts for anything &gt; 70%.
+        </p>
+    </header>
+
+    <div class="bg-white border border-slate-200 rounded-lg p-6">
+        <button hx-post="/api/tat/scan"
+                hx-target="#scan-results"
+                hx-indicator="#scan-spinner"
+                class="px-5 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            Run SLA scan now
+        </button>
+        <span id="scan-spinner" class="htmx-indicator ml-3 text-sm text-slate-500">Scanning… Gemini is reasoning about every order.</span>
+        <p class="text-xs text-slate-500 mt-3">
+            In production this is a 15-minute cron job.
+            Idempotency: alerts are skipped if one was sent for the same order in the last hour.
+        </p>
+    </div>
+
+    <div id="scan-results"></div>
+</div>
+<style>
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator { display: inline; }
+</style>
+{% endblock %}

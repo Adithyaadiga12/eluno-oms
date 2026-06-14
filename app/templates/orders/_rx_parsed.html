@@ -1,0 +1,48 @@
+{% if p.error %}
+<div class="rounded-md border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800">
+    <strong>Parse failed:</strong> {{ p.error }}
+</div>
+{% else %}
+<div class="rounded-md border border-emerald-300 bg-emerald-50 p-4 space-y-3">
+    <div class="flex items-center justify-between">
+        <p class="font-medium text-emerald-900">Parsed by Gemini Vision</p>
+        <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">
+            confidence {{ (p.confidence * 100) | int }}%
+        </span>
+    </div>
+    {% if p.notes %}
+    <p class="text-sm text-emerald-800">Notes: {{ p.notes }}</p>
+    {% endif %}
+    <div class="grid grid-cols-5 gap-2 text-xs">
+        <div></div><div class="font-semibold">SPH</div><div class="font-semibold">CYL</div><div class="font-semibold">AXIS</div><div class="font-semibold">ADD</div>
+        <div class="font-medium">OD (Right)</div>
+        <div>{{ p.sph_right if p.sph_right is not none else "—" }}</div>
+        <div>{{ p.cyl_right if p.cyl_right is not none else "—" }}</div>
+        <div>{{ p.axis_right if p.axis_right is not none else "—" }}</div>
+        <div>{{ p.add_right if p.add_right is not none else "—" }}</div>
+        <div class="font-medium">OS (Left)</div>
+        <div>{{ p.sph_left if p.sph_left is not none else "—" }}</div>
+        <div>{{ p.cyl_left if p.cyl_left is not none else "—" }}</div>
+        <div>{{ p.axis_left if p.axis_left is not none else "—" }}</div>
+        <div>{{ p.add_left if p.add_left is not none else "—" }}</div>
+    </div>
+    <p class="text-sm">PD: {{ p.pd if p.pd is not none else "—" }} mm</p>
+    <button type="button"
+            class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            onclick="
+                const v = (id, val) => { const el = document.getElementById(id); if(el && val !== null) el.value = val; };
+                v('sph_right', {{ p.sph_right if p.sph_right is not none else 'null' }});
+                v('cyl_right', {{ p.cyl_right if p.cyl_right is not none else 'null' }});
+                v('axis_right', {{ p.axis_right if p.axis_right is not none else 'null' }});
+                v('add_right', {{ p.add_right if p.add_right is not none else 'null' }});
+                v('sph_left', {{ p.sph_left if p.sph_left is not none else 'null' }});
+                v('cyl_left', {{ p.cyl_left if p.cyl_left is not none else 'null' }});
+                v('axis_left', {{ p.axis_left if p.axis_left is not none else 'null' }});
+                v('add_left', {{ p.add_left if p.add_left is not none else 'null' }});
+                v('pd', {{ p.pd if p.pd is not none else 'null' }});
+            ">
+        Fill form with these values
+    </button>
+    <p class="text-xs text-emerald-700">Always review before saving — never auto-commit AI output for medical data.</p>
+</div>
+{% endif %}
